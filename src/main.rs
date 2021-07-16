@@ -16,9 +16,8 @@
 
 use dotenv::dotenv;
 use std::env;
-use teloxide::{requests::RequesterExt, Bot};
-use yinchabot::handler::voice_handler;
-use yinchabot::{handler::message_handler, settings::Settings, utils::display_bot_info};
+use teloxide::{prelude::Bot, requests::RequesterExt};
+use yinchabot::{handler::message_handler, listener::polling_listener, utils::display_bot_info};
 
 #[tokio::main]
 async fn main() {
@@ -37,12 +36,7 @@ async fn run_bot() {
 
     display_bot_info(&bot_inst).await;
 
-    let set = Settings::new();
-    let subs = set.subscribe;
-    for sub in subs {
-        println!("{}", sub.chat_id);
-        voice_handler(&bot_inst, sub.chat_id).await;
-    }
+    let listener = polling_listener(bot_inst.clone());
 
-    teloxide::repl(bot_inst.clone(), message_handler).await;
+    teloxide::repl_with_listener(bot_inst.clone(), message_handler, listener).await;
 }
