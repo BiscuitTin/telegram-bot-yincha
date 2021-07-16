@@ -17,10 +17,10 @@
 use directories::ProjectDirs;
 use std::{fs, io::Write, path::Path};
 use teloxide::{
-    prelude::AutoSend,
+    prelude::{AutoSend, Bot},
     requests::Requester,
     types::{ChatMember, Me},
-    Bot, RequestError,
+    RequestError,
 };
 
 pub async fn display_bot_info(bot: &AutoSend<Bot>) {
@@ -40,7 +40,8 @@ pub async fn display_bot_info(bot: &AutoSend<Bot>) {
 
 #[allow(dead_code)]
 pub(crate) async fn check_sender_is_admin(bot: &AutoSend<Bot>, chat_id: i64) -> bool {
-    let chat_admin: Result<ChatMember, RequestError> = bot.get_chat_administrators(chat_id).await;
+    let chat_admin: Result<Vec<ChatMember>, RequestError> =
+        bot.get_chat_administrators(chat_id).await;
     let chat_admin = match chat_admin {
         Ok(admin) => admin,
         Err(ref error) => {
@@ -48,7 +49,7 @@ pub(crate) async fn check_sender_is_admin(bot: &AutoSend<Bot>, chat_id: i64) -> 
             chat_admin.unwrap()
         }
     };
-    println!("{}", chat_admin.user.id); // TODO: Wait newer teloxide release.
+    println!("{}", chat_admin.first().unwrap().user.id);
     return false;
 }
 
@@ -58,9 +59,9 @@ pub(crate) fn get_setting_dir() -> ProjectDirs {
     return dirs;
 }
 
-pub(crate) fn check_exists_and_create(p: &Path, buf: &[u8]) {
+pub(crate) fn check_exists_and_create(p: &Path, buf: &[u8]) -> bool {
     if p.exists() {
-        return;
+        return true;
     }
     let name = p.file_name().expect("App::utils::create");
     let dir = String::from(p.clone().to_str().unwrap()).replace(name.clone().to_str().unwrap(), "");
@@ -74,4 +75,5 @@ pub(crate) fn check_exists_and_create(p: &Path, buf: &[u8]) {
     let mut _f = fs::File::create(p).expect("AppError::utils::create");
     _f.write_all(buf).expect("AppError::utils::writeAll");
     _f.sync_all().expect("AppError::utils::syncAll");
+    return false;
 }

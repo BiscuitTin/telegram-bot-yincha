@@ -16,9 +16,10 @@
 
 use crate::utils::*;
 use serde::{Deserialize, Serialize};
+use std::io::Read;
 use std::{
     fmt::{Display, Formatter},
-    fs::OpenOptions,
+    fs::{File, OpenOptions},
     path::Path,
 };
 
@@ -91,12 +92,19 @@ impl Settings {
         let dirs = get_setting_dir();
         let dir = dirs.config_dir();
         let path = format!("{}/{}", dir.display(), name);
+        let is_exists = check_exists_and_create(Path::new(&path.clone()), b"{}");
 
-        check_exists_and_create(Path::new(&path.clone()), b"{}");
-
-        Settings {
-            subscribe: vec![],
-            file_path: path.clone(),
+        if is_exists {
+            let mut f = File::open(path).unwrap();
+            let mut buffer = String::new();
+            f.read_to_string(&mut buffer).unwrap();
+            let settings: Settings = serde_json::from_str(&buffer).unwrap();
+            settings
+        } else {
+            Settings {
+                subscribe: vec![],
+                file_path: path.clone(),
+            }
         }
     }
 }
