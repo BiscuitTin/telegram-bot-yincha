@@ -1,3 +1,5 @@
-# template
+# Telegram notification yincha bot
 
-Template repository for the Biscuit Tin organization on GitHub.
+> 喂！三点几了，做卵啊做，饮茶先啦！
+
+Work in progress.
